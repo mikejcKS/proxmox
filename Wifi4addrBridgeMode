@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Physical wireless interface
+PHYS="wlan0"
+
+# Virtual network interface
+VIRT="virbr0"
+
+# Bridge interface name
+BRIDGE="br0"
+
+# Check if the bridge interface exists
+if ! ip link show $BRIDGE &> /dev/null; then
+    # Create the bridge interface
+    sudo ip link add name $BRIDGE type bridge
+
+    # Bring up the bridge interface
+    sudo ip link set dev $BRIDGE up
+fi
+
+# Check if the virtual network interface exists
+if ! ip link show $VIRT &> /dev/null; then
+    # Create the virtual network interface
+    sudo ip link add name $VIRT type bridge
+
+    # Bring up the virtual network interface
+    sudo ip link set dev $VIRT up
+fi
+
+# Check if the physical wireless interface is up
+if ip link show $PHYS | grep "UP" &> /dev/null; then
+    # Enable 4addr mode on the physical wireless interface
+    sudo iw dev $PHYS set 4addr on
+
+    # Bring down the physical wireless interface
+    sudo ip link set dev $PHYS down
+
+    # Add the physical wireless interface to the bridge
+    sudo brctl addif $BRIDGE $PHYS
+
+    # Bring up the physical wireless interface
+    sudo ip link set dev $PHYS up
+fi
+
+# Add the virtual network interface to the bridge
+sudo brctl addif $BRIDGE $VIRT
+
+# Set the IP address for the bridge
+sudo ip addr add 192.168.1.$SOMEIP/24 dev $BRIDGE
