@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# The static IP address to register
+IP="192.168.1.100"
+
+# The hostname associated with the static IP address
+HOSTNAME="static-host"
+
+# The MAC address associated with the static IP address
+MAC="00:11:22:33:44:55"
+
+# The DHCP server IP address
+SERVER="192.168.1.1"
+
+# Register the static IP address with the DHCP server
+sudo dhclient -r
+sudo dhclient -H $HOSTNAME -cf /dev/null -lf /var/lib/dhclient/dhclient.leases $INTERFACE
+sudo dhclient -x
+sudo ifconfig $INTERFACE hw ether $MAC
+sudo dhclient $INTERFACE
